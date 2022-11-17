@@ -177,6 +177,10 @@ class SelectQuery<T, V>(var root: Root<T>, var query: CriteriaQuery<V>, var crit
         return criteriaBuilder.countDistinct(prop.asPath(root))
     }
 
+    fun <X> group(path: Path<X>) {
+        query.groupBy(path)
+    }
+
 }
 
 @Experimental

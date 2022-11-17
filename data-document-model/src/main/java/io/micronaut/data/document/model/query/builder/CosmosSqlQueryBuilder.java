@@ -249,7 +249,7 @@ public final class CosmosSqlQueryBuilder extends SqlQueryBuilder {
         String logicalName = queryState.getRootAlias();
         PersistentEntity entity = queryState.getEntity();
         List<QueryModel.Projection> projections = query.getProjections();
-        buildSelect(
+        buildProjections(
             queryState,
             select,
             projections,

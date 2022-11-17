@@ -71,6 +71,8 @@ public abstract class AbstractPersistentEntityCriteriaQuery<T> implements Persis
     protected Predicate predicate;
     protected Selection<?> selection;
     protected PersistentEntityRoot<?> entityRoot;
+    protected List<Expression<?>> grouping;
+    protected Predicate having;
     protected List<Order> orders;
     protected int max = -1;
     protected int offset = 0;
@@ -109,6 +111,14 @@ public abstract class AbstractPersistentEntityCriteriaQuery<T> implements Persis
             SelectionVisitable entityRoot = (SelectionVisitable) this.entityRoot;
             entityRoot.accept(new QueryModelSelectionVisitor(qm, distinct));
             entityRoot.accept(joiner);
+        }
+        if (grouping != null && !grouping.isEmpty()) {
+            grouping.forEach(g -> {
+                PersistentPropertyPath<?> propertyPath = requireProperty(g);
+                joiner.joinIfNeeded(propertyPath);
+                String name = propertyPath.getPathAsString();
+                qm.grouping().groupProperty(name);
+            });
         }
         if (orders != null && !orders.isEmpty()) {
             List<Sort.Order> sortOrders = orders.stream().map(o -> {
@@ -225,22 +235,33 @@ public abstract class AbstractPersistentEntityCriteriaQuery<T> implements Persis
 
     @Override
     public PersistentEntityCriteriaQuery<T> groupBy(Expression<?>... grouping) {
-        throw notSupportedOperation();
+        this.grouping = Arrays.asList(Objects.requireNonNull(grouping));
+        return this;
     }
 
     @Override
     public PersistentEntityCriteriaQuery<T> groupBy(List<Expression<?>> grouping) {
-        throw notSupportedOperation();
+        this.grouping = Objects.requireNonNull(grouping);
+        return this;
     }
 
     @Override
     public PersistentEntityCriteriaQuery<T> having(Expression<Boolean> restriction) {
-        throw notSupportedOperation();
+        this.having = new ConjunctionPredicate(Collections.singleton((IExpression<Boolean>) restriction));
+        return this;
     }
 
     @Override
     public PersistentEntityCriteriaQuery<T> having(Predicate... restrictions) {
-        throw notSupportedOperation();
+        Objects.requireNonNull(restrictions);
+        if (restrictions.length > 0) {
+            having = restrictions.length == 1 ? restrictions[0] : new ConjunctionPredicate(
+                Arrays.stream(restrictions).sequential().map(x -> (IExpression<Boolean>) x).collect(Collectors.toList())
+            );
+        } else {
+            having = null;
+        }
+        return this;
     }
 
     @Override
@@ -271,12 +292,12 @@ public abstract class AbstractPersistentEntityCriteriaQuery<T> implements Persis
 
     @Override
     public List<Expression<?>> getGroupList() {
-        throw notSupportedOperation();
+        return grouping;
     }
 
     @Override
     public Predicate getGroupRestriction() {
-        throw notSupportedOperation();
+        return having;
     }
 
     @Override
@@ -291,7 +312,7 @@ public abstract class AbstractPersistentEntityCriteriaQuery<T> implements Persis
 
     @Override
     public List<Order> getOrderList() {
-        throw notSupportedOperation();
+        return orders;
     }
 
     @Override

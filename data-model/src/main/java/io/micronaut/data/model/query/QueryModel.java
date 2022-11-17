@@ -343,6 +343,30 @@ public interface QueryModel extends Criteria {
     QueryModel offset(long offset);
 
     /**
+     * @return The grouping projections that apply to this query.
+     */
+    List<Projection> getGrouping();
+
+    /**
+     * @return The grouping projection list.
+     */
+    ProjectionList grouping();
+
+    /**
+     * @return The criteria for the HAVING clause of this query.
+     */
+    Junction getHaving();
+
+    @NonNull
+    /**
+     * Adds the specified criterion instance to HAVING clause of the query.
+     *
+     * @param criterion The criterion instance
+     * @return This query
+     */
+    QueryModel addHaving(@NonNull Criterion criterion);
+
+    /**
      * The sort to apply.
      * @return The sort
      */

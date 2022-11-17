@@ -39,11 +39,7 @@ import io.micronaut.data.model.PersistentPropertyPath;
 import io.micronaut.data.model.Sort;
 import io.micronaut.data.model.jpa.criteria.impl.LiteralExpression;
 import io.micronaut.data.model.naming.NamingStrategy;
-import io.micronaut.data.model.query.AssociationQuery;
-import io.micronaut.data.model.query.BindingParameter;
-import io.micronaut.data.model.query.JoinPath;
-import io.micronaut.data.model.query.QueryModel;
-import io.micronaut.data.model.query.QueryParameter;
+import io.micronaut.data.model.query.*;
 import io.micronaut.data.model.query.builder.sql.Dialect;
 
 import javax.validation.constraints.NotNull;
@@ -77,6 +73,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings("checkstyle:FileLength")
 public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
     public static final String ORDER_BY_CLAUSE = " ORDER BY ";
+    public static final String GROUP_BY_CLAUSE = " GROUP BY ";
+    public static final String HAVING_CLAUSE = " HAVING ";
     protected static final String SELECT_CLAUSE = "SELECT ";
     protected static final String AS_CLAUSE = " AS ";
     protected static final String FROM_CLAUSE = " FROM ";
@@ -465,6 +463,8 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
             buildWhereClause(annotationMetadata, criteria, queryState);
         }
 
+        appendGrouping(query, queryState);
+
         appendOrder(query, queryState);
         appendForUpdate(QueryPosition.END_OF_QUERY, query, queryState.getQuery());
 
@@ -617,7 +617,7 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
     private void buildSelectClause(QueryModel query, QueryState queryState, StringBuilder queryString) {
         String logicalName = queryState.getRootAlias();
         PersistentEntity entity = queryState.getEntity();
-        buildSelect(
+        buildProjections(
             queryState,
             queryString,
             query.getProjections(),
@@ -669,7 +669,7 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
      * @param tableAlias the table alias
      * @param entity the persistent entity
      */
-    protected void buildSelect(QueryState queryState, StringBuilder queryString, List<QueryModel.Projection> projectionList, String tableAlias, PersistentEntity entity) {
+    protected void buildProjections(QueryState queryState, StringBuilder queryString, List<QueryModel.Projection> projectionList, String tableAlias, PersistentEntity entity) {
         if (projectionList.isEmpty()) {
             selectAllColumns(queryState, queryString);
         } else {
@@ -1082,6 +1082,29 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
     }
 
     /**
+     * Appends group by to the query.
+     *
+     * @param query the query model
+     * @param queryState the query state
+     */
+    protected void appendGrouping(QueryModel query, QueryState queryState) {
+        List<QueryModel.Projection> grouping = query.getGrouping();
+        String logicalName = queryState.getRootAlias();
+        PersistentEntity entity = queryState.getEntity();
+        if (!grouping.isEmpty()) {
+            StringBuilder queryClause = queryState.getQuery();
+            queryClause.append(GROUP_BY_CLAUSE);
+            buildProjections(
+                queryState,
+                queryClause,
+                grouping,
+                logicalName,
+                entity
+            );
+        }
+    }
+
+    /**
      * Appends order to the query.
      *
      * @param query the query model
@@ -1113,7 +1136,7 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
     }
 
     /**
-     * Adds "forUpdate" pisimmistic locking.
+     * Adds "forUpdate" pessimistic locking.
      *
      * @param queryPosition The query position
      * @param query         The query

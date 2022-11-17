@@ -39,6 +39,10 @@ public class DefaultQuery implements QueryModel {
     private final Map<String, JoinPath> joinPaths = new HashMap<>(2);
     private int max = -1;
     private long offset = 0;
+
+    private final DefaultProjectionList grouping = new DefaultProjectionList();
+
+    private final QueryModel.Junction having = new QueryModel.Conjunction();
     private Sort sort = Sort.unsorted();
     private boolean forUpdate;
 
@@ -256,6 +260,30 @@ public class DefaultQuery implements QueryModel {
     @Override
     public DefaultQuery offset(long offset) {
         this.offset = offset;
+        return this;
+    }
+
+    @Override
+    public List<Projection> getGrouping() {
+        return this.grouping.getProjectionList();
+    }
+
+    @Override
+    public ProjectionList grouping() {
+        return this.grouping;
+    }
+
+    @Override
+    public QueryModel.Junction getHaving() {
+        return this.having;
+    }
+
+    @Override
+    public @NonNull
+    QueryModel addHaving(@NonNull QueryModel.Criterion criterion) {
+        ArgumentUtils.requireNonNull("criterion", criterion);
+        QueryModel.Junction currentJunction = having;
+        add(currentJunction, criterion);
         return this;
     }
 
