@@ -464,6 +464,7 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
         }
 
         appendGrouping(query, queryState);
+        appendHaving(query, queryState);
 
         appendOrder(query, queryState);
         appendForUpdate(QueryPosition.END_OF_QUERY, query, queryState.getQuery());
@@ -959,32 +960,8 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
                 queryClause.append(NOT);
             }
 
-            CriteriaContext ctx = new CriteriaContext() {
-
-                @Override
-                public String getCurrentTableAlias() {
-                    return queryState.getRootAlias();
-                }
-
-                @Override
-                public QueryState getQueryState() {
-                    return queryState;
-                }
-
-                @Override
-                public PersistentEntity getPersistentEntity() {
-                    return queryState.getEntity();
-                }
-
-                @Override
-                public QueryPropertyPath getRequiredProperty(String name, Class<?> criterionClazz) {
-                    return findProperty(queryState, name, criterionClazz);
-                }
-
-            };
-
             queryClause.append(OPEN_BRACKET);
-            handleJunction(ctx, criteria);
+            handleJunction(queryState, criteria);
 
             StringBuilder additionalWhereBuff = buildAdditionalWhereClause(queryState, annotationMetadata);
             appendAdditionalWhere(queryClause, queryState, additionalWhereBuff.toString());
@@ -1105,6 +1082,25 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
     }
 
     /**
+     * Appends having to the query.
+     *
+     * @param query the query model
+     * @param queryState the query state
+     */
+    protected void appendHaving(QueryModel query, QueryState queryState) {
+        QueryModel.Junction having = query.getHaving();
+        if (!having.isEmpty()) {
+            StringBuilder queryClause = queryState.getQuery();
+            queryClause.append(HAVING_CLAUSE);
+
+            if (having instanceof QueryModel.Negation) {
+                queryClause.append(NOT);
+            }
+            handleJunction(queryState, having);
+        }
+    }
+
+    /**
      * Appends order to the query.
      *
      * @param query the query model
@@ -1146,6 +1142,34 @@ public abstract class AbstractSqlLikeQueryBuilder implements QueryBuilder {
         if (query.isForUpdate() && !supportsForUpdate()) {
             throw new IllegalStateException("For update not supported for current query builder: " + getClass().getSimpleName());
         }
+    }
+
+    private void handleJunction(QueryState queryState, QueryModel.Junction criteria) {
+        CriteriaContext ctx = new CriteriaContext() {
+
+            @Override
+            public String getCurrentTableAlias() {
+                return queryState.getRootAlias();
+            }
+
+            @Override
+            public QueryState getQueryState() {
+                return queryState;
+            }
+
+            @Override
+            public PersistentEntity getPersistentEntity() {
+                return queryState.getEntity();
+            }
+
+            @Override
+            public QueryPropertyPath getRequiredProperty(String name, Class<?> criterionClazz) {
+                return findProperty(queryState, name, criterionClazz);
+            }
+
+        };
+
+        handleJunction(ctx, criteria);
     }
 
     private void handleJunction(CriteriaContext ctx, QueryModel.Junction criteria) {

@@ -120,6 +120,13 @@ public abstract class AbstractPersistentEntityCriteriaQuery<T> implements Persis
                 qm.grouping().groupProperty(name);
             });
         }
+        if (having != null) {
+            if (having instanceof PredicateVisitable) {
+                PredicateVisitable predicate = (PredicateVisitable) this.having;
+                predicate.accept(createPredicateVisitor(qm));
+                predicate.accept(joiner);
+            }
+        }
         if (orders != null && !orders.isEmpty()) {
             List<Sort.Order> sortOrders = orders.stream().map(o -> {
                 PersistentPropertyPath<?> propertyPath = requireProperty(o.getExpression());

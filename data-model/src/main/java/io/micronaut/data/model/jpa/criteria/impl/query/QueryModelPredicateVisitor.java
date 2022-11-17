@@ -56,8 +56,8 @@ import java.util.stream.Collectors;
 @Internal
 public class QueryModelPredicateVisitor implements PredicateVisitor {
 
-    private final QueryModel queryModel;
-    private State state = new State();
+    protected final QueryModel queryModel;
+    protected State state = new State();
 
     public QueryModelPredicateVisitor(QueryModel queryModel) {
         this.queryModel = queryModel;
@@ -369,7 +369,7 @@ public class QueryModelPredicateVisitor implements PredicateVisitor {
         return joiner.toString();
     }
 
-    private void add(QueryModel.Criterion criterion) {
+    protected void add(QueryModel.Criterion criterion) {
         if (state.negated) {
             QueryModel.Negation negation = new QueryModel.Negation();
             negation.add(criterion);
@@ -397,7 +397,7 @@ public class QueryModelPredicateVisitor implements PredicateVisitor {
         return oldState;
     }
 
-    private static final class State {
+    protected static final class State {
         boolean negated;
         QueryModel.Junction junction;
     }
