@@ -1,5 +1,9 @@
 package example
 
+import io.micronaut.data.runtime.criteria.get
+import io.micronaut.data.runtime.criteria.joinOne
+import io.micronaut.data.runtime.criteria.query
+import io.micronaut.data.runtime.criteria.where
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
@@ -37,6 +41,82 @@ class BookRepositorySpec : AbstractTest(false) {
             assertEquals("The Shining", bookDTO.title)
             val bookDTO2 = bookRepository.findOne("The Shining")!!
             assertEquals("The Shining", bookDTO2.title)
+        }
+    }
+
+    @Test
+    fun testDtoSpecs() {
+        runBlocking {
+            val author = Author("Some")
+            blockingAuthorRepository.save(author)
+            blockingBookRepository.save(Book("The Shining", 400, author))
+            val bookDTO = bookRepository.findOneBookDTO(where {
+                root[Book::title] eq "The Shining"
+            })!!
+            assertEquals("The Shining", bookDTO.title)
+        }
+    }
+
+    @Test
+    fun testFindWithGroup() {
+        runBlocking {
+            val author = Author("Some")
+            blockingAuthorRepository.save(author)
+            blockingBookRepository.save(Book("The Shining", 400, author))
+            blockingBookRepository.save(Book("Leviathan Wakes", 200, author))
+            val stats = bookRepository.findWithQueryBuilder(query<Book, NamedBookStats> {
+                val authorJoin = root.joinOne(Book::author)
+                multiselect(
+                    authorJoin[Author::name].alias(NamedBookStats::authorName),
+                    max(Book::pages).alias(NamedBookStats::maxPages),
+                    min(Book::pages).alias(NamedBookStats::minPages),
+                    avg(Book::pages).alias(NamedBookStats::avgPages)
+                )
+                group(authorJoin[Author::name])
+            })
+
+            assertEquals(400, stats.maxPages)
+            assertEquals(200, stats.minPages)
+            assertEquals(300.0, stats.avgPages)
+        }
+    }
+
+    @Test
+    fun testFindSingleStat() {
+        runBlocking {
+            val author = Author("Some")
+            blockingAuthorRepository.save(author)
+            blockingBookRepository.save(Book("The Shining", 400, author))
+            blockingBookRepository.save(Book("Leviathan Wakes", 200, author))
+            val stat = bookRepository.findWithQueryBuilder(query<Book, Long> {
+                val authorJoin = root.joinOne(Book::author)
+                select(
+                    sumAsLong(Book::pages)
+                )
+                group(authorJoin[Author::name])
+            })
+            assertEquals(600, stat)
+        }
+    }
+
+    @Test
+    fun testFindDto() {
+        runBlocking {
+            val author = Author("Some")
+            blockingAuthorRepository.save(author)
+            blockingBookRepository.save(Book("The Shining", 400, author))
+            blockingBookRepository.save(Book("Leviathan Wakes", 200, author))
+            val stats = bookRepository.findStatsWithQuery(query<Book, BookStats> {
+                multiselect(
+                    max(Book::pages).alias(BookStats::maxPages),
+                    min(Book::pages).alias(BookStats::minPages),
+                    avg(Book::pages).alias(BookStats::avgPages)
+                )
+            })
+
+            assertEquals(400, stats.maxPages)
+            assertEquals(200, stats.minPages)
+            assertEquals(300.0, stats.avgPages)
         }
     }
 }

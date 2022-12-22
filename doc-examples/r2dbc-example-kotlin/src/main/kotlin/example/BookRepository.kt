@@ -4,12 +4,15 @@ import io.micronaut.data.annotation.Join
 import io.micronaut.data.annotation.Query
 import io.micronaut.data.model.query.builder.sql.Dialect
 import io.micronaut.data.r2dbc.annotation.R2dbcRepository
+import io.micronaut.data.repository.jpa.criteria.CriteriaQueryBuilder
+import io.micronaut.data.repository.jpa.criteria.PredicateSpecification
+import io.micronaut.data.repository.jpa.kotlin.CoroutineJpaSpecificationExecutor
 import io.micronaut.data.repository.kotlin.CoroutineCrudRepository
 import kotlinx.coroutines.flow.Flow
 import javax.transaction.Transactional
 
 @R2dbcRepository(dialect = Dialect.MYSQL) // <1>
-interface BookRepository : CoroutineCrudRepository<Book, Long> {
+interface BookRepository : CoroutineCrudRepository<Book, Long>, CoroutineJpaSpecificationExecutor<Book> {
     @Join("author")
     override suspend fun findById(id: Long): Book? // <2>
 
@@ -29,4 +32,11 @@ interface BookRepository : CoroutineCrudRepository<Book, Long> {
 
     suspend fun findOne(title: String): BookDTO?
 
+    fun findOneBookDTO(spec: PredicateSpecification<Book>?): BookDTO?
+
+    suspend fun <T> findWithQueryBuilder(builder: CriteriaQueryBuilder<T>): T
+
+    suspend fun findStatsWithQueryBuilder(builder: CriteriaQueryBuilder<BookStats>): List<BookStats>
+
+    fun findStatsWithQuery(builder: CriteriaQueryBuilder<BookStats>): BookStats
 }

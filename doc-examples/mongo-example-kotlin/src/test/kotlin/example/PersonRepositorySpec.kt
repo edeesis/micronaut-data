@@ -28,6 +28,10 @@ class PersonRepositorySpec : AbstractMongoSpec() {
                 Person(
                         "Josh",
                         22
+                ),
+                Person(
+                        "Denis",
+                        22
                 )
         ))
     }
@@ -55,6 +59,46 @@ class PersonRepositorySpec : AbstractMongoSpec() {
         Assertions.assertEquals(1, countAgeLess20)
         Assertions.assertEquals(1, countAgeLess30NotDenis)
         Assertions.assertEquals(2, people.size)
+    }
+
+//    @Test
+//    fun testFindWithGroup() {
+//        val stats = personRepository.findOne(query<Person, NamedPersonAgeStatsDto> {
+//            multiselect(
+//                root[Person::name].alias(NamedPersonAgeStatsDto::name),
+//                max(Person::age).alias(PersonAgeStatsDto::maxAge),
+//                min(Person::age).alias(PersonAgeStatsDto::minAge),
+//                avg(Person::age).alias(PersonAgeStatsDto::avgAge)
+//            )
+//            where {
+//                or {
+//                    root[Person::name] eq "Denis"
+//                    root[Person::name] eq "Josh"
+//                }
+//            }
+//            group(Person::name)
+//        })
+//
+//        Assertions.assertEquals(22, stats.maxAge)
+//        Assertions.assertEquals(13, stats.minAge)
+//        Assertions.assertEquals(17.5, stats.avgAge)
+//    }
+
+    @Test
+    fun testFindSingleStat() {
+        val stat = personRepository.findOne(query<Person, Number> {
+            select(
+                max(Person::age),
+            )
+            where {
+                or {
+                    root[Person::name] eq "Denis"
+                    root[Person::name] eq "Josh"
+                }
+            }
+        })
+
+        Assertions.assertEquals(22, stat)
     }
 
     @Test
