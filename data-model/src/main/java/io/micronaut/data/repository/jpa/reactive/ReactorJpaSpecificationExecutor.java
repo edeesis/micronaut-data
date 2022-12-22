@@ -20,10 +20,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.data.model.Sort;
-import io.micronaut.data.repository.jpa.criteria.DeleteSpecification;
-import io.micronaut.data.repository.jpa.criteria.PredicateSpecification;
-import io.micronaut.data.repository.jpa.criteria.QuerySpecification;
-import io.micronaut.data.repository.jpa.criteria.UpdateSpecification;
+import io.micronaut.data.repository.jpa.criteria.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -46,6 +43,10 @@ public interface ReactorJpaSpecificationExecutor<T> extends ReactiveStreamsJpaSp
 
     @Override
     @NonNull
+    Mono<T> findOne(@Nullable CriteriaQueryBuilder<T> spec);
+
+    @Override
+    @NonNull
     Flux<T> findAll(@Nullable QuerySpecification<T> spec);
 
     @Override
@@ -65,6 +66,10 @@ public interface ReactorJpaSpecificationExecutor<T> extends ReactiveStreamsJpaSp
     @Override
     @NonNull
     Flux<T> findAll(@Nullable PredicateSpecification<T> spec, Sort sort);
+
+    @Override
+    @NonNull
+    Flux<T> findAll(@Nullable CriteriaQueryBuilder<T> spec);
 
     @Override
     @NonNull

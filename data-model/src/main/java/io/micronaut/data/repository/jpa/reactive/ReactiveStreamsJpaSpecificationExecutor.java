@@ -20,10 +20,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
 import io.micronaut.data.model.Sort;
-import io.micronaut.data.repository.jpa.criteria.DeleteSpecification;
-import io.micronaut.data.repository.jpa.criteria.PredicateSpecification;
-import io.micronaut.data.repository.jpa.criteria.QuerySpecification;
-import io.micronaut.data.repository.jpa.criteria.UpdateSpecification;
+import io.micronaut.data.repository.jpa.criteria.*;
 import org.reactivestreams.Publisher;
 
 /**
@@ -52,6 +49,17 @@ public interface ReactiveStreamsJpaSpecificationExecutor<T> {
      */
     @NonNull
     Publisher<T> findOne(@Nullable PredicateSpecification<T> spec);
+
+    /**
+     * Find one using build criteria query.
+     *
+     * @param builder The criteria query builder
+     *
+     * @return the number records updated.
+     * @since 3.5.0
+     */
+    @NonNull
+    Publisher<T> findOne(@Nullable CriteriaQueryBuilder<T> builder);
 
     /**
      * Returns all entities matching the given {@link QuerySpecification}.
@@ -110,6 +118,19 @@ public interface ReactiveStreamsJpaSpecificationExecutor<T> {
      */
     @NonNull
     Publisher<T> findAll(@Nullable PredicateSpecification<T> spec, Sort sort);
+
+    /**
+     * Find all using build criteria query.
+     *
+     * @param builder The criteria query builder
+     *
+     * @return the number records updated.
+     * @since 3.5.0
+     */
+    @NonNull
+    Publisher<T> findAll(@Nullable CriteriaQueryBuilder<T> builder);
+
+
 
     /**
      * Returns the number of instances that the given {@link QuerySpecification} will return.

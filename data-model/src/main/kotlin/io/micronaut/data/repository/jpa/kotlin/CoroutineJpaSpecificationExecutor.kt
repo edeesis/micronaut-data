@@ -18,6 +18,7 @@ package io.micronaut.data.repository.jpa.kotlin
 import io.micronaut.data.model.Page
 import io.micronaut.data.model.Pageable
 import io.micronaut.data.model.Sort
+import io.micronaut.data.repository.jpa.criteria.CriteriaQueryBuilder
 import io.micronaut.data.repository.jpa.criteria.DeleteSpecification
 import io.micronaut.data.repository.jpa.criteria.PredicateSpecification
 import io.micronaut.data.repository.jpa.criteria.QuerySpecification
@@ -41,7 +42,7 @@ interface CoroutineJpaSpecificationExecutor<T> {
      * @param spec The query specification
      * @return optional found result
      */
-    fun findOne(spec: QuerySpecification<T>?): T?
+    suspend fun findOne(spec: QuerySpecification<T>?): T?
 
     /**
      * Returns a single entity matching the given [PredicateSpecification].
@@ -49,7 +50,7 @@ interface CoroutineJpaSpecificationExecutor<T> {
      * @param spec The query specification
      * @return optional found result
      */
-    fun findOne(spec: PredicateSpecification<T>?): T?
+    suspend fun findOne(spec: PredicateSpecification<T>?): T?
 
     /**
      * Returns all entities matching the given [QuerySpecification].
@@ -102,6 +103,28 @@ interface CoroutineJpaSpecificationExecutor<T> {
      * @return found results
      */
     fun findAll(spec: PredicateSpecification<T>?, sort: Sort): Flow<T>
+
+    /**
+     * Find all using build criteria query.
+     *
+     * @param builder The criteria query builder
+     * @param <S> the result type
+     *
+     * @return the number records updated.
+     * @since 3.5.0
+     */
+    fun findAll(builder: CriteriaQueryBuilder<T>?): Flow<T>;
+
+    /**
+     * Find one using build criteria query.
+     *
+     * @param builder The criteria query builder
+     * @param <S> the result type
+     *
+     * @return the number records updated.
+     * @since 3.5.0
+     */
+    fun findOne(builder: CriteriaQueryBuilder<T>): T?
 
     /**
      * Returns the number of instances that the given [QuerySpecification] will return.
