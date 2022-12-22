@@ -173,7 +173,7 @@ class SelectQuery<T, V>(var root: Root<T>, var query: CriteriaQuery<V>, var crit
         return criteriaBuilder.count(prop.asPath(root))
     }
 
-    fun <K> countDistinct(prop: KProperty<Float?>): Expression<Long> {
+    fun <K> countDistinct(prop: KProperty<K?>): Expression<Long> {
         return criteriaBuilder.countDistinct(prop.asPath(root))
     }
 
