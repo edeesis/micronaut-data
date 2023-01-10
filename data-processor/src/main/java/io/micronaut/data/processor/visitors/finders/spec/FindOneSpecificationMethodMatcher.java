@@ -25,6 +25,8 @@ import io.micronaut.inject.ast.ClassElement;
 
 import java.util.Map;
 
+import static io.micronaut.data.processor.visitors.finders.TypeUtils.isDtoType;
+
 /**
  * JPA specification findOne.
  *
@@ -45,20 +47,20 @@ public class FindOneSpecificationMethodMatcher extends AbstractSpecificationMeth
     protected MethodMatch match(MethodMatchContext matchContext, java.util.regex.Matcher matcher) {
         if (isFirstParameterMicronautDataQuerySpecification(matchContext.getMethodElement())) {
             Map.Entry<ClassElement, ClassElement> e = FindersUtils.pickFindOneSpecInterceptor(matchContext, matchContext.getMethodElement().getGenericReturnType());
-            return mc -> new MethodMatchInfo(DataMethod.OperationType.QUERY, e.getKey(), e.getValue());
+            return mc -> new MethodMatchInfo(DataMethod.OperationType.QUERY, e.getKey(), e.getValue()).dto(isDtoType(e.getKey()));
         }
         if (isFirstParameterSpringJpaSpecification(matchContext.getMethodElement())) {
             return mc -> new MethodMatchInfo(
                     DataMethod.OperationType.QUERY,
                     mc.getReturnType(),
                     getInterceptorElement(mc, "io.micronaut.data.spring.jpa.intercept.FindOneSpecificationInterceptor")
-            );
+            ).dto(isDtoType(mc.getReturnType()));
         }
         return mc -> new MethodMatchInfo(
                 DataMethod.OperationType.QUERY,
                 mc.getReturnType(),
                 getInterceptorElement(mc, "io.micronaut.data.jpa.repository.intercept.FindOneSpecificationInterceptor")
-        );
+        ).dto(isDtoType(mc.getReturnType()));
     }
 
     @Override

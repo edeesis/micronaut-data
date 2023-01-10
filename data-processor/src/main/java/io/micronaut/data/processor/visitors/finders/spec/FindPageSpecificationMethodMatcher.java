@@ -29,6 +29,8 @@ import io.micronaut.inject.ast.ParameterElement;
 
 import java.util.Map;
 
+import static io.micronaut.data.processor.visitors.finders.TypeUtils.isDtoType;
+
 /**
  * Compilation time implementation of {@code Page find(Specification, Pageable)} for JPA.
  *
@@ -64,20 +66,20 @@ public class FindPageSpecificationMethodMatcher extends AbstractSpecificationMet
                         DataMethod.OperationType.QUERY,
                         e.getKey(),
                         e.getValue()
-                );
+                ).dto(isDtoType(e.getKey()));
             }
             if (isFirstParameterSpringJpaSpecification(matchContext.getMethodElement())) {
                 return mc -> new MethodMatchInfo(
                         DataMethod.OperationType.QUERY,
                         mc.getReturnType(),
                         getInterceptorElement(mc, "io.micronaut.data.spring.jpa.intercept.FindPageSpecificationInterceptor")
-                );
+                ).dto(isDtoType(mc.getReturnType()));
             }
             return mc -> new MethodMatchInfo(
                     DataMethod.OperationType.QUERY,
                     mc.getReturnType(),
                     getInterceptorElement(mc, "io.micronaut.data.jpa.repository.intercept.FindPageSpecificationInterceptor")
-            );
+            ).dto(isDtoType(mc.getReturnType()));
         }
         return null;
     }

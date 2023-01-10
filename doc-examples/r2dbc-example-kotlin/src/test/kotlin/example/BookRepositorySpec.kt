@@ -106,17 +106,21 @@ class BookRepositorySpec : AbstractTest(false) {
             blockingAuthorRepository.save(author)
             blockingBookRepository.save(Book("The Shining", 400, author))
             blockingBookRepository.save(Book("Leviathan Wakes", 200, author))
-            val stats = bookRepository.findStatsWithQuery(query<Book, BookStats> {
+            val results = bookRepository.findStatsWithQuery(query<Book, BookStats> {
                 multiselect(
-                    max(Book::pages).alias(BookStats::maxPages),
-                    min(Book::pages).alias(BookStats::minPages),
-                    avg(Book::pages).alias(BookStats::avgPages)
+                    max(Book::pages).alias(BookStats::max_pages),
+                    min(Book::pages).alias(BookStats::min_pages),
+                    avg(Book::pages).alias(BookStats::avg_pages),
+                    sum(Book::pages).alias(BookStats::sum_pages),
                 )
             })
 
-            assertEquals(400, stats.maxPages)
-            assertEquals(200, stats.minPages)
-            assertEquals(300.0, stats.avgPages)
+            val stats = results.first()
+
+            assertEquals(400, stats.max_pages)
+            assertEquals(200, stats.min_pages)
+            assertEquals(300.0, stats.avg_pages)
+            assertEquals(600, stats.sum_pages)
         }
     }
 }

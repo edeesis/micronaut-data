@@ -29,6 +29,8 @@ import io.micronaut.inject.ast.ParameterElement;
 
 import java.util.Map;
 
+import static io.micronaut.data.processor.visitors.finders.TypeUtils.isDtoType;
+
 /**
  * Find all specification method.
  *
@@ -55,20 +57,20 @@ public class FindAllSpecificationMethodMatcher extends AbstractSpecificationMeth
         if (TypeUtils.isValidFindAllReturnType(matchContext) && isCorrectParameters(matchContext.getMethodElement())) {
             if (isFirstParameterMicronautDataQuerySpecification(matchContext.getMethodElement())) {
                 Map.Entry<ClassElement, ClassElement> e = FindersUtils.pickFindAllSpecInterceptor(matchContext, matchContext.getReturnType());
-                return mc -> new MethodMatchInfo(DataMethod.OperationType.QUERY, e.getKey(), e.getValue());
+                return mc -> new MethodMatchInfo(DataMethod.OperationType.QUERY, e.getKey(), e.getValue()).dto(isDtoType(e.getKey()));
             }
             if (isFirstParameterSpringJpaSpecification(matchContext.getMethodElement())) {
                 return mc -> new MethodMatchInfo(
                         DataMethod.OperationType.QUERY,
                         mc.getReturnType(),
                         getInterceptorElement(mc, "io.micronaut.data.spring.jpa.intercept.FindAllSpecificationInterceptor")
-                );
+                ).dto(isDtoType(mc.getReturnType()));
             }
             return mc -> new MethodMatchInfo(
                     DataMethod.OperationType.QUERY,
                     mc.getReturnType(),
                     getInterceptorElement(mc, "io.micronaut.data.jpa.repository.intercept.FindAllSpecificationInterceptor")
-            );
+            ).dto(isDtoType(mc.getReturnType()));
         }
         return null;
     }

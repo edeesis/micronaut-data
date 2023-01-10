@@ -32,11 +32,11 @@ interface BookRepository : CoroutineCrudRepository<Book, Long>, CoroutineJpaSpec
 
     suspend fun findOne(title: String): BookDTO?
 
-    fun findOneBookDTO(spec: PredicateSpecification<Book>?): BookDTO?
+    fun findOneBookDTO(spec: PredicateSpecification<Book>): BookDTO?
 
     suspend fun <T> findWithQueryBuilder(builder: CriteriaQueryBuilder<T>): T
 
     suspend fun findStatsWithQueryBuilder(builder: CriteriaQueryBuilder<BookStats>): List<BookStats>
 
-    fun findStatsWithQuery(builder: CriteriaQueryBuilder<BookStats>): BookStats
+    suspend fun findStatsWithQuery(builder: CriteriaQueryBuilder<BookStats>): List<BookStats>
 }

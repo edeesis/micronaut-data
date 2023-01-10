@@ -16,6 +16,7 @@
 package io.micronaut.data.processor.visitors.finders;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.reflect.ClassUtils;
@@ -504,5 +505,9 @@ public class TypeUtils {
         return ClassUtils.getPrimitiveType(typeName).map(t ->
             ReflectionUtils.getWrapperType(t).getName()
         ).orElse(typeName);
+    }
+
+    public static boolean isDtoType(@NonNull ClassElement type) {
+        return type.hasStereotype(Introspected.class) && !type.hasStereotype(MappedEntity.class);
     }
 }

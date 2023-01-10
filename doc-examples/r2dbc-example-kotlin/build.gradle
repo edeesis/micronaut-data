@@ -25,6 +25,9 @@ micronaut {
 dependencies {
     kapt project(":data-processor")
     implementation("io.micronaut.data:micronaut-data-r2dbc")
+    //implementation libs.jakarta.persistence.api2
+    implementation libs.jakarta.persistence.api
+
     implementation("io.micronaut.flyway:micronaut-flyway")
     implementation "io.micronaut.sql:micronaut-jdbc-hikari"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core"
